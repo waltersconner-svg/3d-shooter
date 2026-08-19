@@ -408,7 +408,7 @@
 
         <!-- Movement Info -->
         <div id="movement-info">
-            W A S D - Move | SPACE - Jump | R - Reload | CLICK - Shoot
+            W A S D - Move | SPACE - Jump | R - Reload | CLICK - Shoot | MOUSE - Look Around
         </div>
     </div>
 
@@ -416,7 +416,7 @@
     <div id="instructions">
         <h1>3D SHOOTER</h1>
         <p>WASD to move • SPACE to jump</p>
-        <p>MOUSE to aim • CLICK to shoot</p>
+        <p>MOUSE to look around • CLICK to shoot</p>
         <p>R to reload</p>
         <p>Destroy all enemies!</p>
         <p style="font-size: 12px; margin-top: 20px; cursor: pointer;" onclick="document.getElementById('instructions').classList.add('hidden')">Click anywhere to start</p>
@@ -671,6 +671,10 @@
         let playerVelocity = new THREE.Vector3(0, 0, 0);
         let isJumping = false;
 
+        // Euler angles for camera rotation
+        let euler = new THREE.Euler(0, 0, 0, 'YXZ');
+        let PI_2 = Math.PI / 2;
+
         document.addEventListener('keydown', (e) => {
             keys[e.key.toLowerCase()] = true;
             if (e.key.toLowerCase() === 'r') {
@@ -786,28 +790,47 @@
             }
         }
 
-        // Mouse move for looking
-        let mouseX = 0, mouseY = 0;
-        document.addEventListener('mousemove', (e) => {
-            const centerX = window.innerWidth / 2;
-            const centerY = window.innerHeight / 2;
+        // Mouse move for full 360 degree looking
+        let isLocked = false;
 
-            mouseX = (e.clientX - centerX) * 0.0005;
-            mouseY = (e.clientY - centerY) * 0.0005;
-
-            armGroup.rotation.y = mouseX;
-            armGroup.rotation.x = -mouseY;
-
-            // Limit vertical look
-            armGroup.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, armGroup.rotation.x));
+        document.addEventListener('pointerlockchange', () => {
+            isLocked = document.pointerLockElement === canvas;
         });
 
-        // Click to shoot
+        document.addEventListener('mousemove', (e) => {
+            if (!isLocked) return;
+
+            const movementX = e.movementX || 0;
+            const movementY = e.movementY || 0;
+
+            // Sensitivity multiplier
+            const sensitivity = 0.003;
+
+            euler.setFromQuaternion(camera.quaternion);
+            euler.rotateY(-movementX * sensitivity);
+            euler.rotateX(-movementY * sensitivity);
+            euler.z = 0;
+
+            // Clamp vertical rotation
+            euler.x = Math.max(-PI_2, Math.min(PI_2, euler.x));
+
+            camera.quaternion.setFromEuler(euler);
+
+            // Rotate arm group to match camera
+            armGroup.rotation.copy(camera.rotation);
+        });
+
+        // Click to shoot and lock pointer
         document.addEventListener('click', () => {
             if (!document.getElementById('instructions').classList.contains('hidden')) {
                 document.getElementById('instructions').classList.add('hidden');
             } else {
                 shoot();
+            }
+
+            if (!isLocked) {
+                canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock;
+                canvas.requestPointerLock();
             }
         });
 
@@ -837,7 +860,11 @@
 
             if (moveDirection.length() > 0) {
                 moveDirection.normalize();
-                moveDirection.applyAxisAngle(new THREE.Vector3(0, 1, 0), armGroup.rotation.y);
+                // Get camera direction
+                const cameraDirection = new THREE.Vector3();
+                camera.getWorldDirection(cameraDirection);
+                const angle = Math.atan2(cameraDirection.x, cameraDirection.z);
+                moveDirection.applyAxisAngle(new THREE.Vector3(0, 1, 0), angle);
                 camera.position.addScaledVector(moveDirection, 0.1);
             }
 
@@ -891,12 +918,6 @@
             camera.aspect = width / height;
             camera.updateProjectionMatrix();
             renderer.setSize(width, height);
-        });
-
-        // Pointer lock
-        document.addEventListener('click', () => {
-            canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock;
-            canvas.requestPointerLock();
         });
 
         // Start game
