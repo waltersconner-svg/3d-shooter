@@ -116,7 +116,32 @@
             opacity: 1;
         }
 
-        /* Top Left - Health */
+        /* Weapon selector */
+        #weapon-selector {
+            position: absolute;
+            bottom: 200px;
+            left: 40px;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            border: 1px solid #0f0;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .weapon-option {
+            padding: 5px;
+            margin: 3px 0;
+            cursor: pointer;
+        }
+
+        .weapon-option.active {
+            background: #0f0;
+            color: #000;
+            font-weight: bold;
+        }
+
+        /* Top Left - Health & Wave */
         #health-section {
             position: absolute;
             top: 40px;
@@ -157,11 +182,21 @@
             width: 100%;
         }
 
-        /* Top Right - Enemy Counter */
-        #enemy-counter {
+        #wave-info {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #ffff00;
+            text-shadow: 0 0 10px #ffff00;
+        }
+
+        /* Top Right - Enemy Counter & Killboard */
+        #top-right-info {
             position: absolute;
             top: 40px;
             right: 40px;
+        }
+
+        #enemy-counter {
             color: #0f0;
             font-family: 'Courier New', monospace;
             font-size: 18px;
@@ -169,6 +204,35 @@
             border: 2px solid #0f0;
             padding: 15px;
             background: rgba(0, 0, 0, 0.7);
+            margin-bottom: 20px;
+        }
+
+        #killboard {
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            text-shadow: 0 0 10px #0f0;
+            border: 2px solid #0f0;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            max-height: 200px;
+            overflow-y: auto;
+            min-width: 200px;
+        }
+
+        .killboard-title {
+            color: #ffff00;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .kill-entry {
+            font-size: 12px;
+            margin: 3px 0;
+            padding: 3px;
+            background: rgba(0, 255, 0, 0.1);
+            border-radius: 3px;
         }
 
         /* Bottom Right - Score & Status */
@@ -205,8 +269,8 @@
         #killstreak {
             position: absolute;
             top: 50%;
-            right: 40px;
-            transform: translateY(-50%);
+            left: 50%;
+            transform: translate(-50%, -50%);
             text-align: center;
             color: #ffff00;
             font-size: 18px;
@@ -310,7 +374,7 @@
             transform: translateX(-50%);
             color: #0f0;
             font-family: 'Courier New', monospace;
-            font-size: 12px;
+            font-size: 11px;
             text-align: center;
             opacity: 0.7;
         }
@@ -369,25 +433,39 @@
             <div class="crosshair-dot"></div>
         </div>
 
-        <!-- Top Left - Health -->
+        <!-- Top Left - Health & Wave -->
         <div id="health-section">
             <div class="stat-label">HEALTH</div>
             <div class="stat-bar">
                 <div id="health-fill" class="stat-fill">100%</div>
             </div>
+            <div id="wave-info">WAVE: <span id="wave-number">1</span></div>
         </div>
 
-        <!-- Top Right - Enemy Counter -->
-        <div id="enemy-counter">
-            Enemies: <span id="enemy-count">0</span> / <span id="enemy-total">5</span>
+        <!-- Top Right - Enemy Counter & Killboard -->
+        <div id="top-right-info">
+            <div id="enemy-counter">
+                Enemies: <span id="enemy-count">0</span> / <span id="enemy-total">5</span>
+            </div>
+            <div id="killboard">
+                <div class="killboard-title">KILLBOARD</div>
+                <div id="kill-list"></div>
+            </div>
         </div>
 
-        <!-- Bottom Left - Ammo -->
+        <!-- Bottom Left - Ammo & Weapon -->
         <div id="ammo-section">
             <div id="magazine">30</div>
             <div id="total-ammo">| 90</div>
             <div id="weapon-name">RIFLE</div>
             <div id="reload-prompt">Press R to Reload</div>
+        </div>
+
+        <!-- Weapon Selector -->
+        <div id="weapon-selector">
+            <div class="weapon-option active" data-weapon="rifle">1: RIFLE</div>
+            <div class="weapon-option" data-weapon="pistol">2: PISTOL</div>
+            <div class="weapon-option" data-weapon="knife">3: KNIFE</div>
         </div>
 
         <!-- Bottom Right - Score & Status -->
@@ -408,7 +486,7 @@
 
         <!-- Movement Info -->
         <div id="movement-info">
-            W A S D - Move | SPACE - Jump | R - Reload | CLICK - Shoot | MOUSE - Look Around
+            W A S D - Move | SPACE - Jump | 1/2/3 - Swap Weapon | R - Reload | CLICK - Shoot
         </div>
     </div>
 
@@ -417,8 +495,8 @@
         <h1>3D SHOOTER</h1>
         <p>WASD to move • SPACE to jump</p>
         <p>MOUSE to look around • CLICK to shoot</p>
-        <p>R to reload</p>
-        <p>Destroy all enemies!</p>
+        <p>1/2/3 to swap weapons (Rifle/Pistol/Knife)</p>
+        <p>R to reload • Destroy all enemies!</p>
         <p style="font-size: 12px; margin-top: 20px; cursor: pointer;" onclick="document.getElementById('instructions').classList.add('hidden')">Click anywhere to start</p>
     </div>
 
@@ -479,28 +557,57 @@
         directionalLight.shadow.mapSize.height = 2048;
         scene.add(directionalLight);
 
-        // Create gun model
-        const gunGroup = new THREE.Group();
+        // Weapon models
+        const weaponGroups = {};
 
+        // RIFLE
+        weaponGroups.rifle = new THREE.Group();
         const barrelGeometry = new THREE.CylinderGeometry(0.15, 0.15, 1.5, 16);
         const gunMaterial = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, metalness: 0.8, roughness: 0.2 });
         const barrel = new THREE.Mesh(barrelGeometry, gunMaterial);
         barrel.rotation.z = Math.PI / 2;
         barrel.position.set(0.3, -0.2, -0.5);
         barrel.castShadow = true;
-        gunGroup.add(barrel);
+        weaponGroups.rifle.add(barrel);
 
         const bodyGeometry = new THREE.BoxGeometry(0.2, 0.3, 0.4);
         const body = new THREE.Mesh(bodyGeometry, gunMaterial);
         body.position.set(0.1, -0.15, -0.2);
         body.castShadow = true;
-        gunGroup.add(body);
+        weaponGroups.rifle.add(body);
 
         const stockGeometry = new THREE.BoxGeometry(0.15, 0.25, 0.6);
         const stock = new THREE.Mesh(stockGeometry, gunMaterial);
         stock.position.set(-0.15, -0.1, -0.5);
         stock.castShadow = true;
-        gunGroup.add(stock);
+        weaponGroups.rifle.add(stock);
+
+        // PISTOL
+        weaponGroups.pistol = new THREE.Group();
+        const pistolBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.8, 16), gunMaterial);
+        pistolBarrel.rotation.z = Math.PI / 2;
+        pistolBarrel.position.set(0.15, -0.1, -0.3);
+        weaponGroups.pistol.add(pistolBarrel);
+
+        const pistolBody = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.2, 0.25), gunMaterial);
+        pistolBody.position.set(0.05, -0.1, -0.15);
+        weaponGroups.pistol.add(pistolBody);
+
+        // KNIFE
+        weaponGroups.knife = new THREE.Group();
+        const bladeGeometry = new THREE.BoxGeometry(0.05, 0.5, 0.02);
+        const bladeMaterial = new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.9, roughness: 0.1 });
+        const blade = new THREE.Mesh(bladeGeometry, bladeMaterial);
+        blade.position.set(0.2, -0.1, -0.4);
+        blade.rotation.z = Math.PI / 4;
+        weaponGroups.knife.add(blade);
+
+        const handleGeometry = new THREE.CylinderGeometry(0.08, 0.08, 0.3, 16);
+        const handleMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
+        const handle = new THREE.Mesh(handleGeometry, handleMaterial);
+        handle.position.set(0.2, -0.3, -0.4);
+        handle.rotation.z = Math.PI / 2.5;
+        weaponGroups.knife.add(handle);
 
         // Create arm model
         const armGroup = new THREE.Group();
@@ -526,14 +633,14 @@
         hand.castShadow = true;
         armGroup.add(hand);
 
-        armGroup.add(gunGroup);
+        // Add rifle by default
+        armGroup.add(weaponGroups.rifle);
         camera.add(armGroup);
 
         // Function to create a human-like enemy
         function createHumanModel(x, z) {
             const group = new THREE.Group();
 
-            // Head
             const headGeometry = new THREE.SphereGeometry(0.25, 32, 32);
             const skinMat = new THREE.MeshStandardMaterial({ color: 0xffcc99 });
             const head = new THREE.Mesh(headGeometry, skinMat);
@@ -542,7 +649,6 @@
             head.receiveShadow = true;
             group.add(head);
 
-            // Torso
             const torsoGeometry = new THREE.BoxGeometry(0.4, 0.8, 0.3);
             const clothMat = new THREE.MeshStandardMaterial({ color: 0xff0000 });
             const torso = new THREE.Mesh(torsoGeometry, clothMat);
@@ -551,7 +657,6 @@
             torso.receiveShadow = true;
             group.add(torso);
 
-            // Left arm
             const armGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.7, 16);
             const armMat = new THREE.MeshStandardMaterial({ color: 0xffcc99 });
             const leftArm = new THREE.Mesh(armGeometry, armMat);
@@ -560,14 +665,12 @@
             leftArm.receiveShadow = true;
             group.add(leftArm);
 
-            // Right arm
             const rightArm = new THREE.Mesh(armGeometry, armMat);
             rightArm.position.set(0.25, 0.8, 0);
             rightArm.castShadow = true;
             rightArm.receiveShadow = true;
             group.add(rightArm);
 
-            // Left leg
             const legGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.8, 16);
             const pantsMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
             const leftLeg = new THREE.Mesh(legGeometry, pantsMat);
@@ -576,7 +679,6 @@
             leftLeg.receiveShadow = true;
             group.add(leftLeg);
 
-            // Right leg
             const rightLeg = new THREE.Mesh(legGeometry, pantsMat);
             rightLeg.position.set(0.15, 0.4, 0);
             rightLeg.castShadow = true;
@@ -594,16 +696,13 @@
                 this.mesh = createHumanModel(x, z);
                 scene.add(this.mesh);
                 this.alive = true;
-                this.lastHitTime = 0;
                 this.velocity = new THREE.Vector3(0, 0, 0);
                 this.isJumping = false;
             }
 
             damage(amount) {
                 this.health -= amount;
-                this.lastHitTime = Date.now();
 
-                // Flash red on hit
                 this.mesh.traverse(child => {
                     if (child.isMesh) {
                         child.material.emissive.setHex(0xff0000);
@@ -623,6 +722,7 @@
                 scene.remove(this.mesh);
                 kills++;
                 killstreak++;
+                addKillboardEntry();
             }
 
             update() {
@@ -632,13 +732,9 @@
                     const distance = direction.length();
                     direction.normalize();
 
-                    // Move towards player
                     this.mesh.position.addScaledVector(direction, 0.03);
-
-                    // Look at player
                     this.mesh.lookAt(camera.position);
 
-                    // Gravity and jumping
                     this.velocity.y -= 0.02;
                     this.mesh.position.y += this.velocity.y;
 
@@ -653,11 +749,9 @@
                         }
                     }
 
-                    // Boundaries
                     this.mesh.position.x = Math.max(-145, Math.min(145, this.mesh.position.x));
                     this.mesh.position.z = Math.max(-145, Math.min(145, this.mesh.position.z));
 
-                    // Take damage from player if too close
                     if (distance < 2) {
                         health -= 0.5;
                     }
@@ -671,14 +765,22 @@
         let playerVelocity = new THREE.Vector3(0, 0, 0);
         let isJumping = false;
 
-        // Camera rotation angles
         let pitch = 0;
         let yaw = 0;
 
         document.addEventListener('keydown', (e) => {
             keys[e.key.toLowerCase()] = true;
-            if (e.key.toLowerCase() === 'r') {
+            if (e.key === 'r' || e.key === 'R') {
                 reload();
+            }
+            if (e.key === '1') {
+                switchWeapon('rifle');
+            }
+            if (e.key === '2') {
+                switchWeapon('pistol');
+            }
+            if (e.key === '3') {
+                switchWeapon('knife');
             }
         });
 
@@ -688,45 +790,126 @@
 
         // Game variables
         let health = 100;
-        let ammo = 30;
-        let totalAmmo = 90;
+        let currentWeapon = 'rifle';
+        let weaponStats = {
+            rifle: { magazine: 30, totalAmmo: 90, damage: 1, fireRate: 0.2 },
+            pistol: { magazine: 15, totalAmmo: 60, damage: 1, fireRate: 0.3 },
+            knife: { magazine: -1, totalAmmo: -1, damage: 1, fireRate: 0.5 }
+        };
+        let ammo = weaponStats.rifle.magazine;
+        let totalAmmo = weaponStats.rifle.totalAmmo;
         let kills = 0;
         let killstreak = 0;
+        let killboardEntries = [];
         let frameCount = 0;
         let fps = 60;
         let lastTime = Date.now();
         let enemies = [];
-        const MAGAZINE_SIZE = 30;
-        const SHOOT_COOLDOWN = 0.2;
         let shootCooldown = 0;
         let isReloading = false;
+        let wave = 1;
 
-        // Shoot function with better raycasting
+        // Switch weapon function
+        function switchWeapon(weapon) {
+            if (currentWeapon === weapon) return;
+
+            // Remove current weapon
+            armGroup.remove(weaponGroups[currentWeapon]);
+
+            // Switch stats
+            currentWeapon = weapon;
+            ammo = weaponStats[weapon].magazine;
+            totalAmmo = weaponStats[weapon].totalAmmo;
+            isReloading = false;
+
+            // Add new weapon
+            armGroup.add(weaponGroups[weapon]);
+
+            // Update selector UI
+            document.querySelectorAll('.weapon-option').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.querySelector(`[data-weapon="${weapon}"]`).classList.add('active');
+
+            updateHUD();
+        }
+
+        // Shoot function with weapon-specific stats
         function shoot() {
+            if (currentWeapon === 'knife') {
+                shootKnife();
+                return;
+            }
+
             if (ammo <= 0 || isReloading) return;
 
-            shootCooldown = SHOOT_COOLDOWN;
+            shootCooldown = weaponStats[currentWeapon].fireRate;
             ammo--;
 
             // Muzzle flash
-            barrel.scale.z = 1.2;
-            setTimeout(() => {
-                barrel.scale.z = 1;
-            }, 50);
+            if (weaponGroups[currentWeapon].children[0]) {
+                const firstChild = weaponGroups[currentWeapon].children[0];
+                const originalScale = firstChild.scale.z;
+                firstChild.scale.z = 1.2;
+                setTimeout(() => {
+                    firstChild.scale.z = originalScale;
+                }, 50);
+            }
 
-            // Raycast from camera center
             const raycaster = new THREE.Raycaster();
             const screenCenter = new THREE.Vector2(0, 0);
             raycaster.setFromCamera(screenCenter, camera);
 
-            // Create list of enemy meshes for raycasting
             const enemyMeshes = enemies.filter(e => e.alive).map(e => e.mesh);
 
             if (enemyMeshes.length > 0) {
                 const intersects = raycaster.intersectObjects(enemyMeshes, true);
                 
                 if (intersects.length > 0) {
-                    // Find which enemy was hit
+                    for (let enemy of enemies) {
+                        if (enemy.alive) {
+                            for (let intersection of intersects) {
+                                if (intersection.object === enemy.mesh || enemy.mesh.getObjectById(intersection.object.id)) {
+                                    enemy.damage(weaponStats[currentWeapon].damage);
+                                    break;
+                                }
+                                let parent = intersection.object.parent;
+                                while (parent) {
+                                    if (parent === enemy.mesh) {
+                                        enemy.damage(weaponStats[currentWeapon].damage);
+                                        break;
+                                    }
+                                    parent = parent.parent;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            updateHUD();
+
+            if (ammo === 0 && totalAmmo > 0) {
+                reload();
+            }
+        }
+
+        // Knife attack
+        function shootKnife() {
+            if (isReloading) return;
+
+            shootCooldown = weaponStats.knife.fireRate;
+
+            const raycaster = new THREE.Raycaster();
+            const screenCenter = new THREE.Vector2(0, 0);
+            raycaster.setFromCamera(screenCenter, camera);
+
+            const enemyMeshes = enemies.filter(e => e.alive).map(e => e.mesh);
+
+            if (enemyMeshes.length > 0) {
+                const intersects = raycaster.intersectObjects(enemyMeshes, true);
+                
+                if (intersects.length > 0) {
                     for (let enemy of enemies) {
                         if (enemy.alive) {
                             for (let intersection of intersects) {
@@ -734,7 +917,6 @@
                                     enemy.damage(1);
                                     break;
                                 }
-                                // Check if intersection object is part of enemy mesh
                                 let parent = intersection.object.parent;
                                 while (parent) {
                                     if (parent === enemy.mesh) {
@@ -748,21 +930,14 @@
                     }
                 }
             }
-
-            updateHUD();
-
-            // Auto-reload
-            if (ammo === 0 && totalAmmo > 0) {
-                reload();
-            }
         }
 
         // Reload function
         function reload() {
-            if (isReloading || totalAmmo <= 0) return;
+            if (currentWeapon === 'knife' || isReloading || totalAmmo <= 0) return;
 
             isReloading = true;
-            const ammoNeeded = MAGAZINE_SIZE - ammo;
+            const ammoNeeded = weaponStats[currentWeapon].magazine - ammo;
             const ammoToUse = Math.min(ammoNeeded, totalAmmo);
             
             ammo += ammoToUse;
@@ -776,15 +951,41 @@
             updateHUD();
         }
 
+        // Killboard entry
+        function addKillboardEntry() {
+            const now = new Date();
+            const time = now.getHours().toString().padStart(2, '0') + ':' + 
+                        now.getMinutes().toString().padStart(2, '0') + ':' + 
+                        now.getSeconds().toString().padStart(2, '0');
+            
+            killboardEntries.unshift(`[${time}] KILL #${kills}`);
+            if (killboardEntries.length > 10) {
+                killboardEntries.pop();
+            }
+
+            const killList = document.getElementById('kill-list');
+            killList.innerHTML = killboardEntries.map(entry => 
+                `<div class="kill-entry">${entry}</div>`
+            ).join('');
+        }
+
         // Update HUD
         function updateHUD() {
-            document.getElementById('magazine').textContent = Math.floor(ammo);
-            document.getElementById('total-ammo').textContent = '| ' + totalAmmo;
+            if (currentWeapon === 'knife') {
+                document.getElementById('magazine').textContent = '∞';
+                document.getElementById('total-ammo').textContent = '';
+            } else {
+                document.getElementById('magazine').textContent = Math.floor(ammo);
+                document.getElementById('total-ammo').textContent = '| ' + totalAmmo;
+            }
+            
+            document.getElementById('weapon-name').textContent = currentWeapon.toUpperCase();
             document.getElementById('health-fill').style.width = Math.max(0, health) + '%';
             document.getElementById('health-fill').textContent = Math.max(0, Math.floor(health)) + '%';
             document.getElementById('kill-count').textContent = kills;
             document.getElementById('enemy-count').textContent = enemies.filter(e => e.alive).length;
             document.getElementById('killstreak-count').textContent = killstreak;
+            document.getElementById('wave-number').textContent = wave;
 
             if (killstreak > 0) {
                 document.getElementById('killstreak').classList.add('active');
@@ -792,7 +993,7 @@
                 document.getElementById('killstreak').classList.remove('active');
             }
 
-            if (ammo === 0 && totalAmmo > 0 && !isReloading) {
+            if (currentWeapon !== 'knife' && ammo === 0 && totalAmmo > 0 && !isReloading) {
                 document.getElementById('reload-prompt').classList.add('active');
             } else {
                 document.getElementById('reload-prompt').classList.remove('active');
@@ -811,22 +1012,19 @@
             }
         }
 
-        // Mouse move with simpler approach
+        // Mouse look
         document.addEventListener('mousemove', (e) => {
             const sensitivity = 0.003;
             
             pitch -= e.movementY * sensitivity;
             yaw -= e.movementX * sensitivity;
 
-            // Clamp pitch
             pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch));
 
-            // Apply rotation to camera
             camera.rotation.order = 'YXZ';
             camera.rotation.y = yaw;
             camera.rotation.x = pitch;
 
-            // Also update arm group rotation
             armGroup.rotation.order = 'YXZ';
             armGroup.rotation.y = yaw;
             armGroup.rotation.x = pitch;
@@ -839,7 +1037,6 @@
             }
             shoot();
             
-            // Lock pointer
             if (document.pointerLockElement !== canvas) {
                 canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock;
                 canvas.requestPointerLock();
@@ -849,12 +1046,14 @@
         // Spawn enemies
         function spawnEnemies() {
             enemies = [];
-            const positions = [
-                [-40, -40], [40, -40], [-40, 40], [40, 40], [0, -50]
-            ];
-            positions.forEach(pos => {
-                enemies.push(new Enemy(pos[0], pos[1]));
-            });
+            const enemyCount = Math.min(5 + Math.floor(wave / 2), 10);
+            for (let i = 0; i < enemyCount; i++) {
+                const angle = (i / enemyCount) * Math.PI * 2;
+                const distance = 40 + Math.random() * 20;
+                const x = Math.cos(angle) * distance;
+                const z = Math.sin(angle) * distance;
+                enemies.push(new Enemy(x, z));
+            }
         }
 
         // Animation loop
@@ -863,10 +1062,7 @@
 
             shootCooldown = Math.max(0, shootCooldown - 1/60);
 
-            // Player movement - FIXED: reversed direction
             moveDirection.set(0, 0, 0);
-            
-            // Calculate forward and right vectors based on camera direction
             const forward = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
             const right = new THREE.Vector3(1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
 
@@ -880,13 +1076,11 @@
                 camera.position.addScaledVector(moveDirection, 0.1);
             }
 
-            // Jumping
             if (keys[' '] && !isJumping) {
                 playerVelocity.y = 0.15;
                 isJumping = true;
             }
 
-            // Gravity
             playerVelocity.y -= 0.02;
             camera.position.y += playerVelocity.y;
 
@@ -896,26 +1090,26 @@
                 isJumping = false;
             }
 
-            // Boundaries
             camera.position.x = Math.max(-140, Math.min(140, camera.position.x));
             camera.position.z = Math.max(-140, Math.min(140, camera.position.z));
 
-            // Update enemies
             enemies.forEach(enemy => {
                 enemy.update();
             });
 
-            // Check win condition
             if (enemies.every(e => !e.alive)) {
+                wave++;
                 killstreak = 0;
                 spawnEnemies();
             }
 
-            // Death
             if (health <= 0) {
                 health = 100;
                 kills = 0;
                 killstreak = 0;
+                wave = 1;
+                killboardEntries = [];
+                document.getElementById('kill-list').innerHTML = '';
                 spawnEnemies();
             }
 
