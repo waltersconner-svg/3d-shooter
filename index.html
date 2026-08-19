@@ -116,7 +116,7 @@
             opacity: 1;
         }
 
-        /* Top Left - Health & Armor */
+        /* Top Left - Health */
         #health-section {
             position: absolute;
             top: 40px;
@@ -671,9 +671,9 @@
         let playerVelocity = new THREE.Vector3(0, 0, 0);
         let isJumping = false;
 
-        // Euler angles for camera rotation
-        let euler = new THREE.Euler(0, 0, 0, 'YXZ');
-        let PI_2 = Math.PI / 2;
+        // Camera rotation angles
+        let pitch = 0;
+        let yaw = 0;
 
         document.addEventListener('keydown', (e) => {
             keys[e.key.toLowerCase()] = true;
@@ -701,7 +701,7 @@
         let shootCooldown = 0;
         let isReloading = false;
 
-        // Shoot function
+        // Shoot function with better raycasting
         function shoot() {
             if (ammo <= 0 || isReloading) return;
 
@@ -714,19 +714,40 @@
                 barrel.scale.z = 1;
             }, 50);
 
-            // Raycast from camera
+            // Raycast from camera center
             const raycaster = new THREE.Raycaster();
-            raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+            const screenCenter = new THREE.Vector2(0, 0);
+            raycaster.setFromCamera(screenCenter, camera);
 
-            // Check enemy collisions
-            enemies.forEach(enemy => {
-                if (enemy.alive) {
-                    const distance = camera.position.distanceTo(enemy.mesh.position);
-                    if (raycaster.ray.distanceToPoint(enemy.mesh.position) < 1 && distance < 200) {
-                        enemy.damage(1);
+            // Create list of enemy meshes for raycasting
+            const enemyMeshes = enemies.filter(e => e.alive).map(e => e.mesh);
+
+            if (enemyMeshes.length > 0) {
+                const intersects = raycaster.intersectObjects(enemyMeshes, true);
+                
+                if (intersects.length > 0) {
+                    // Find which enemy was hit
+                    for (let enemy of enemies) {
+                        if (enemy.alive) {
+                            for (let intersection of intersects) {
+                                if (intersection.object === enemy.mesh || enemy.mesh.getObjectById(intersection.object.id)) {
+                                    enemy.damage(1);
+                                    break;
+                                }
+                                // Check if intersection object is part of enemy mesh
+                                let parent = intersection.object.parent;
+                                while (parent) {
+                                    if (parent === enemy.mesh) {
+                                        enemy.damage(1);
+                                        break;
+                                    }
+                                    parent = parent.parent;
+                                }
+                            }
+                        }
                     }
                 }
-            });
+            }
 
             updateHUD();
 
@@ -790,45 +811,36 @@
             }
         }
 
-        // Mouse move for full 360 degree looking
-        let isLocked = false;
-
-        document.addEventListener('pointerlockchange', () => {
-            isLocked = document.pointerLockElement === canvas;
-        });
-
+        // Mouse move with simpler approach
         document.addEventListener('mousemove', (e) => {
-            if (!isLocked) return;
-
-            const movementX = e.movementX || 0;
-            const movementY = e.movementY || 0;
-
-            // Sensitivity multiplier
             const sensitivity = 0.003;
+            
+            pitch -= e.movementY * sensitivity;
+            yaw -= e.movementX * sensitivity;
 
-            euler.setFromQuaternion(camera.quaternion);
-            euler.rotateY(-movementX * sensitivity);
-            euler.rotateX(-movementY * sensitivity);
-            euler.z = 0;
+            // Clamp pitch
+            pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch));
 
-            // Clamp vertical rotation
-            euler.x = Math.max(-PI_2, Math.min(PI_2, euler.x));
+            // Apply rotation to camera
+            camera.rotation.order = 'YXZ';
+            camera.rotation.y = yaw;
+            camera.rotation.x = pitch;
 
-            camera.quaternion.setFromEuler(euler);
-
-            // Rotate arm group to match camera
-            armGroup.rotation.copy(camera.rotation);
+            // Also update arm group rotation
+            armGroup.rotation.order = 'YXZ';
+            armGroup.rotation.y = yaw;
+            armGroup.rotation.x = pitch;
         });
 
-        // Click to shoot and lock pointer
+        // Click to shoot
         document.addEventListener('click', () => {
             if (!document.getElementById('instructions').classList.contains('hidden')) {
                 document.getElementById('instructions').classList.add('hidden');
-            } else {
-                shoot();
             }
-
-            if (!isLocked) {
+            shoot();
+            
+            // Lock pointer
+            if (document.pointerLockElement !== canvas) {
                 canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock;
                 canvas.requestPointerLock();
             }
@@ -851,20 +863,20 @@
 
             shootCooldown = Math.max(0, shootCooldown - 1/60);
 
-            // Player movement
+            // Player movement - FIXED: reversed direction
             moveDirection.set(0, 0, 0);
-            if (keys['w']) moveDirection.z -= 1;
-            if (keys['s']) moveDirection.z += 1;
-            if (keys['a']) moveDirection.x -= 1;
-            if (keys['d']) moveDirection.x += 1;
+            
+            // Calculate forward and right vectors based on camera direction
+            const forward = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
+            const right = new THREE.Vector3(1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
+
+            if (keys['w']) moveDirection.addScaledVector(forward, 1);
+            if (keys['s']) moveDirection.addScaledVector(forward, -1);
+            if (keys['d']) moveDirection.addScaledVector(right, 1);
+            if (keys['a']) moveDirection.addScaledVector(right, -1);
 
             if (moveDirection.length() > 0) {
                 moveDirection.normalize();
-                // Get camera direction
-                const cameraDirection = new THREE.Vector3();
-                camera.getWorldDirection(cameraDirection);
-                const angle = Math.atan2(cameraDirection.x, cameraDirection.z);
-                moveDirection.applyAxisAngle(new THREE.Vector3(0, 1, 0), angle);
                 camera.position.addScaledVector(moveDirection, 0.1);
             }
 
