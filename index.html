@@ -24,6 +24,159 @@
             height: 100vh;
         }
 
+        /* Menu Styles */
+        #menu-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        #menu-container.hidden {
+            display: none;
+        }
+
+        #menu {
+            text-align: center;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            background: rgba(0, 0, 0, 0.8);
+            border: 3px solid #0f0;
+            padding: 50px;
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.5);
+            max-width: 600px;
+        }
+
+        #menu h1 {
+            font-size: 48px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px #0f0;
+            animation: pulse 2s infinite;
+        }
+
+        #menu-subtitle {
+            font-size: 18px;
+            margin-bottom: 40px;
+            color: #ffff00;
+            text-shadow: 0 0 10px #ffff00;
+        }
+
+        .menu-section {
+            margin: 30px 0;
+        }
+
+        .menu-section.hidden {
+            display: none;
+        }
+
+        .menu-button {
+            display: block;
+            width: 250px;
+            margin: 15px auto;
+            padding: 15px 30px;
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid #0f0;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-shadow: 0 0 5px #0f0;
+        }
+
+        .menu-button:hover {
+            background: rgba(0, 255, 0, 0.3);
+            box-shadow: 0 0 15px #0f0;
+            transform: scale(1.05);
+        }
+
+        .menu-button:active {
+            transform: scale(0.95);
+        }
+
+        .menu-button.secondary {
+            width: 200px;
+            padding: 10px 20px;
+            font-size: 14px;
+            margin: 10px auto;
+        }
+
+        .menu-label {
+            font-size: 14px;
+            color: #ffff00;
+            margin-top: 15px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 5px #ffff00;
+        }
+
+        .menu-input {
+            width: 250px;
+            padding: 10px;
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid #0f0;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            margin: 5px auto;
+            display: block;
+            cursor: pointer;
+        }
+
+        .difficulty-options {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .difficulty-btn {
+            padding: 10px 20px;
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid #0f0;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .difficulty-btn:hover {
+            background: rgba(0, 255, 0, 0.3);
+            box-shadow: 0 0 10px #0f0;
+        }
+
+        .difficulty-btn.active {
+            background: #0f0;
+            color: #000;
+            font-weight: bold;
+        }
+
+        .volume-slider {
+            width: 250px;
+            margin: 10px auto;
+            display: block;
+        }
+
+        .back-button {
+            width: 150px !important;
+            margin-top: 20px !important;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                text-shadow: 0 0 20px #0f0;
+            }
+            50% {
+                text-shadow: 0 0 40px #0f0;
+            }
+        }
+
         /* HUD Overlay */
         #hud {
             position: absolute;
@@ -379,38 +532,132 @@
             opacity: 0.7;
         }
 
-        /* Instructions */
-        #instructions {
-            position: absolute;
+        /* Pause Menu */
+        #pause-menu {
+            position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.9);
-            border: 2px solid #0f0;
-            padding: 30px;
+            background: rgba(0, 0, 0, 0.95);
+            border: 3px solid #0f0;
+            padding: 40px;
             text-align: center;
             color: #0f0;
             font-family: 'Courier New', monospace;
-            z-index: 1000;
-        }
-
-        #instructions h1 {
-            font-size: 28px;
-            margin-bottom: 20px;
-            text-shadow: 0 0 10px #0f0;
-        }
-
-        #instructions p {
-            font-size: 16px;
-            margin: 10px 0;
-        }
-
-        #instructions.hidden {
+            z-index: 1500;
             display: none;
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.5);
+        }
+
+        #pause-menu.show {
+            display: block;
+        }
+
+        #pause-menu h2 {
+            font-size: 36px;
+            margin-bottom: 30px;
+            text-shadow: 0 0 15px #0f0;
+        }
+
+        #pause-menu button {
+            display: block;
+            width: 200px;
+            margin: 15px auto;
+            padding: 12px;
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid #0f0;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        #pause-menu button:hover {
+            background: rgba(0, 255, 0, 0.3);
+            box-shadow: 0 0 10px #0f0;
         }
     </style>
 </head>
 <body>
+    <!-- Main Menu -->
+    <div id="menu-container">
+        <div id="menu">
+            <h1>⚔️ SHOOTER ⚔️</h1>
+            <div id="menu-subtitle">GANGALISOUS REX EDITION</div>
+
+            <!-- Main Menu Section -->
+            <div class="menu-section" id="main-menu">
+                <button class="menu-button" onclick="startGame()">START GAME</button>
+                <button class="menu-button" onclick="showSettings()">SETTINGS</button>
+                <button class="menu-button" onclick="showInstructions()">INSTRUCTIONS</button>
+                <button class="menu-button" onclick="showCredits()">CREDITS</button>
+            </div>
+
+            <!-- Settings Section -->
+            <div class="menu-section hidden" id="settings-menu">
+                <h2 style="color: #ffff00; margin-bottom: 20px;">⚙️ SETTINGS</h2>
+                
+                <div class="menu-label">DIFFICULTY</div>
+                <div class="difficulty-options">
+                    <button class="difficulty-btn active" onclick="setDifficulty('easy')">EASY</button>
+                    <button class="difficulty-btn" onclick="setDifficulty('normal')">NORMAL</button>
+                    <button class="difficulty-btn" onclick="setDifficulty('hard')">HARD</button>
+                </div>
+
+                <div class="menu-label">MASTER VOLUME</div>
+                <input type="range" class="volume-slider" min="0" max="100" value="80" id="volume-slider">
+
+                <div class="menu-label">SENSITIVITY</div>
+                <input type="range" class="volume-slider" min="0.1" max="5" step="0.1" value="1" id="sensitivity-slider">
+
+                <div class="menu-label">
+                    <input type="checkbox" id="vsync-toggle"> V-SYNC
+                </div>
+
+                <button class="menu-button back-button" onclick="backToMain()">BACK</button>
+            </div>
+
+            <!-- Instructions Section -->
+            <div class="menu-section hidden" id="instructions-menu">
+                <h2 style="color: #ffff00; margin-bottom: 20px;">📋 INSTRUCTIONS</h2>
+                <div style="text-align: left; font-size: 13px; line-height: 1.8;">
+                    <p><strong>MOVEMENT:</strong> WASD to move, SPACE to jump</p>
+                    <p><strong>AIMING:</strong> Move mouse to look around</p>
+                    <p><strong>SHOOTING:</strong> Click to shoot</p>
+                    <p><strong>WEAPONS:</strong> Press 1 (Rifle), 2 (Pistol), 3 (Knife)</p>
+                    <p><strong>RELOAD:</strong> Press R (not needed for knife)</p>
+                    <p><strong>PAUSE:</strong> Press ESC during gameplay</p>
+                    <p><strong>OBJECTIVE:</strong> Eliminate all enemies per wave</p>
+                    <p><strong>WAVES:</strong> Clear enemies to progress to next wave</p>
+                </div>
+                <button class="menu-button back-button" onclick="backToMain()">BACK</button>
+            </div>
+
+            <!-- Credits Section -->
+            <div class="menu-section hidden" id="credits-menu">
+                <h2 style="color: #ffff00; margin-bottom: 20px;">🎮 CREDITS</h2>
+                <div style="font-size: 13px; line-height: 2;">
+                    <p><strong>CREATED BY:</strong> Gangalisous Rex</p>
+                    <p><strong>ENGINE:</strong> Three.js</p>
+                    <p><strong>GRAPHICS:</strong> WebGL</p>
+                    <p><strong>SOUND:</strong> HTML5 Audio</p>
+                    <p style="margin-top: 20px; color: #ffff00;">Thanks for playing!</p>
+                </div>
+                <button class="menu-button back-button" onclick="backToMain()">BACK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pause Menu (in-game) -->
+    <div id="pause-menu">
+        <h2>PAUSED</h2>
+        <button onclick="resumeGame()">RESUME</button>
+        <button onclick="showSettingsPause()">SETTINGS</button>
+        <button onclick="mainMenuFromGame()">MAIN MENU</button>
+    </div>
+
     <canvas id="canvas"></canvas>
 
     <div id="hud">
@@ -486,21 +733,85 @@
 
         <!-- Movement Info -->
         <div id="movement-info">
-            W A S D - Move | SPACE - Jump | 1/2/3 - Swap Weapon | R - Reload | CLICK - Shoot
+            W A S D - Move | SPACE - Jump | 1/2/3 - Swap Weapon | R - Reload | ESC - Pause
         </div>
     </div>
 
-    <!-- Instructions Screen -->
-    <div id="instructions">
-        <h1>3D SHOOTER</h1>
-        <p>WASD to move • SPACE to jump</p>
-        <p>MOUSE to look around • CLICK to shoot</p>
-        <p>1/2/3 to swap weapons (Rifle/Pistol/Knife)</p>
-        <p>R to reload • Destroy all enemies!</p>
-        <p style="font-size: 12px; margin-top: 20px; cursor: pointer;" onclick="document.getElementById('instructions').classList.add('hidden')">Click anywhere to start</p>
-    </div>
-
     <script>
+        // Game State
+        let gameStarted = false;
+        let gamePaused = false;
+        let difficulty = 'easy';
+        let masterVolume = 0.8;
+        let mouseSensitivity = 1;
+
+        // Menu Functions
+        function startGame() {
+            document.getElementById('menu-container').classList.add('hidden');
+            gameStarted = true;
+            canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock;
+            canvas.requestPointerLock();
+        }
+
+        function showSettings() {
+            document.getElementById('main-menu').classList.add('hidden');
+            document.getElementById('settings-menu').classList.remove('hidden');
+        }
+
+        function showSettingsPause() {
+            // TODO: Show in-game settings
+            resumeGame();
+        }
+
+        function showInstructions() {
+            document.getElementById('main-menu').classList.add('hidden');
+            document.getElementById('instructions-menu').classList.remove('hidden');
+        }
+
+        function showCredits() {
+            document.getElementById('main-menu').classList.add('hidden');
+            document.getElementById('credits-menu').classList.remove('hidden');
+        }
+
+        function backToMain() {
+            document.getElementById('settings-menu').classList.add('hidden');
+            document.getElementById('instructions-menu').classList.add('hidden');
+            document.getElementById('credits-menu').classList.add('hidden');
+            document.getElementById('main-menu').classList.remove('hidden');
+        }
+
+        function setDifficulty(level) {
+            difficulty = level;
+            document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        function resumeGame() {
+            gamePaused = false;
+            document.getElementById('pause-menu').classList.remove('show');
+            canvas.requestPointerLock();
+        }
+
+        function mainMenuFromGame() {
+            gameStarted = false;
+            gamePaused = false;
+            document.getElementById('menu-container').classList.remove('hidden');
+            document.getElementById('pause-menu').classList.remove('show');
+            document.getElementById('main-menu').classList.remove('hidden');
+            document.getElementById('settings-menu').classList.add('hidden');
+            
+            // Reset game
+            health = 100;
+            kills = 0;
+            killstreak = 0;
+            wave = 1;
+            killboardEntries = [];
+            document.getElementById('kill-list').innerHTML = '';
+            spawnEnemies();
+        }
+
         // Three.js Setup
         const canvas = document.getElementById('canvas');
         const scene = new THREE.Scene();
@@ -633,7 +944,6 @@
         hand.castShadow = true;
         armGroup.add(hand);
 
-        // Add rifle by default
         armGroup.add(weaponGroups.rifle);
         camera.add(armGroup);
 
@@ -769,6 +1079,21 @@
         let yaw = 0;
 
         document.addEventListener('keydown', (e) => {
+            if (!gameStarted) return;
+
+            if (e.key === 'Escape') {
+                gamePaused = !gamePaused;
+                if (gamePaused) {
+                    document.getElementById('pause-menu').classList.add('show');
+                } else {
+                    document.getElementById('pause-menu').classList.remove('show');
+                    canvas.requestPointerLock();
+                }
+                return;
+            }
+
+            if (gamePaused) return;
+
             keys[e.key.toLowerCase()] = true;
             if (e.key === 'r' || e.key === 'R') {
                 reload();
@@ -813,19 +1138,14 @@
         function switchWeapon(weapon) {
             if (currentWeapon === weapon) return;
 
-            // Remove current weapon
             armGroup.remove(weaponGroups[currentWeapon]);
-
-            // Switch stats
             currentWeapon = weapon;
             ammo = weaponStats[weapon].magazine;
             totalAmmo = weaponStats[weapon].totalAmmo;
             isReloading = false;
 
-            // Add new weapon
             armGroup.add(weaponGroups[weapon]);
 
-            // Update selector UI
             document.querySelectorAll('.weapon-option').forEach(el => {
                 el.classList.remove('active');
             });
@@ -836,6 +1156,8 @@
 
         // Shoot function with weapon-specific stats
         function shoot() {
+            if (!gameStarted || gamePaused) return;
+
             if (currentWeapon === 'knife') {
                 shootKnife();
                 return;
@@ -846,7 +1168,6 @@
             shootCooldown = weaponStats[currentWeapon].fireRate;
             ammo--;
 
-            // Muzzle flash
             if (weaponGroups[currentWeapon].children[0]) {
                 const firstChild = weaponGroups[currentWeapon].children[0];
                 const originalScale = firstChild.scale.z;
@@ -1014,7 +1335,9 @@
 
         // Mouse look
         document.addEventListener('mousemove', (e) => {
-            const sensitivity = 0.003;
+            if (!gameStarted || gamePaused) return;
+
+            const sensitivity = (mouseSensitivity / 2) * 0.003;
             
             pitch -= e.movementY * sensitivity;
             yaw -= e.movementX * sensitivity;
@@ -1032,19 +1355,19 @@
 
         // Click to shoot
         document.addEventListener('click', () => {
-            if (!document.getElementById('instructions').classList.contains('hidden')) {
-                document.getElementById('instructions').classList.add('hidden');
-            }
-            shoot();
-            
-            if (document.pointerLockElement !== canvas) {
-                canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock;
-                canvas.requestPointerLock();
+            if (gameStarted && !gamePaused) {
+                shoot();
+                if (document.pointerLockElement !== canvas) {
+                    canvas.requestPointerLock();
+                }
             }
         });
 
         // Spawn enemies
         function spawnEnemies() {
+            enemies.forEach(enemy => {
+                if (enemy.alive) scene.remove(enemy.mesh);
+            });
             enemies = [];
             const enemyCount = Math.min(5 + Math.floor(wave / 2), 10);
             for (let i = 0; i < enemyCount; i++) {
@@ -1059,6 +1382,11 @@
         // Animation loop
         function animate() {
             requestAnimationFrame(animate);
+
+            if (!gameStarted || gamePaused) {
+                renderer.render(scene, camera);
+                return;
+            }
 
             shootCooldown = Math.max(0, shootCooldown - 1/60);
 
